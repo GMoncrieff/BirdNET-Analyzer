@@ -398,7 +398,13 @@ def analyzer_parser():
         help="Maximum number of consecutive detections above MIN_CONF to merge for each detected species. This will result in fewer entires in the result file with segments longer than 3 seconds. Set to 0 or 1 to disable merging. Set to None to include all consecutive detections. We use the mean of the top 3 scores from all consecutive detections for merging.",
     )
 
-    parser.add_argument("--use_perch", action="store_true", help="Use the Perch model for detection.")
+    parser.add_argument(
+        "--use_perch",
+        type=str,
+        default="disable",
+        choices=["disable", "auto", "gpu", "cpu"],
+        help='Perch model usage: "disable" (default) - do not use Perch model; "auto" - automatically detect GPU and use appropriate model; "gpu" - force GPU model (warns if no GPU); "cpu" - force CPU model.',
+    )
 
     return parser
 

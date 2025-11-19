@@ -17,11 +17,12 @@ MODEL_VERSION: str = "V2.4"
 PB_MODEL: str = os.path.join(SCRIPT_DIR, "checkpoints/V2.4/BirdNET_GLOBAL_6K_V2.4_Model")
 BIRDNET_MODEL_PATH: str = os.path.join(SCRIPT_DIR, "checkpoints/V2.4/BirdNET_GLOBAL_6K_V2.4_Model_FP32.tflite")
 PERCH_V2_MODEL_PATH: str = os.path.join(SCRIPT_DIR, "checkpoints/perch_v2")
+PERCH_V2_CPU_MODEL_PATH: str = os.path.join(SCRIPT_DIR, "checkpoints/perch_v2_cpu")
 MDATA_MODEL_PATH: str = os.path.join(SCRIPT_DIR, "checkpoints/V2.4/BirdNET_GLOBAL_6K_V2.4_MData_Model_V2_FP16.tflite")
 BIRDNET_LABELS_FILE: str = os.path.join(SCRIPT_DIR, "checkpoints/V2.4/BirdNET_GLOBAL_6K_V2.4_Labels.txt")
 PERCH_LABELS_FILE: str = os.path.join(PERCH_V2_MODEL_PATH, "assets", "labels.csv")
 TRANSLATED_LABELS_PATH: str = os.path.join(SCRIPT_DIR, "labels/V2.4")
-USE_PERCH: bool = False
+USE_PERCH: str = "disable"  # Options: "disable", "auto", "gpu", "cpu"
 
 ##################
 # Audio settings #

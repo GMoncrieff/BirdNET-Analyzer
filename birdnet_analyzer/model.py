@@ -1136,7 +1136,7 @@ def predict(sample):
     if cfg.CUSTOM_CLASSIFIER is not None:
         return predict_with_custom_classifier(sample)
 
-    if cfg.USE_PERCH:
+    if cfg.USE_PERCH != "disable":
         return predict_with_perch(sample)
 
     load_model()
