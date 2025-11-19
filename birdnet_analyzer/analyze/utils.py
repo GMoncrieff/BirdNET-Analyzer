@@ -92,7 +92,7 @@ def generate_raven_table(timestamps: list[str], result: dict[str, list], afile_p
             selection_id += 1
             label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])] if cfg.TRANSLATED_LABELS else c[0]
             code = cfg.CODES[c[0]] if c[0] in cfg.CODES else c[0]
-            lbl = label if cfg.USE_PERCH else label.split("_", 1)[-1]
+            lbl = label if cfg.USE_PERCH != "disable" else label.split("_", 1)[-1]
             rstring += f"{selection_id}\tSpectrogram 1\t1\t{start}\t{end}\t{low_freq}\t{high_freq}\t{lbl}\t{code}\t{c[1]:.4f}\t{afile_path}\t{start}\n"
 
         # Write result string to file
@@ -129,7 +129,7 @@ def generate_audacity(timestamps: list[str], result: dict[str, list], result_pat
         for c in result[timestamp]:
             label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])] if cfg.TRANSLATED_LABELS else c[0]
             ts = timestamp.replace("-", "\t")
-            lbl = label if cfg.USE_PERCH else label.replace("_", ", ")
+            lbl = label if cfg.USE_PERCH != "disable" else label.replace("_", ", ")
             rstring += f"{ts}\t{lbl}\t{c[1]:.4f}\n"
 
         # Write result string to file
@@ -164,7 +164,7 @@ def generate_kaleidoscope(timestamps: list[str], result: dict[str, list], afile_
         for c in result[timestamp]:
             label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])] if cfg.TRANSLATED_LABELS else c[0]
 
-            if cfg.USE_PERCH:
+            if cfg.USE_PERCH != "disable":
                 common = scientific = label
             else:
                 split_label = label.split("_", 1)
@@ -226,7 +226,7 @@ def generate_csv(timestamps: list[str], result: dict[str, list], afile_path: str
             start, end = timestamp.split("-", 1)
             label = cfg.TRANSLATED_LABELS[cfg.LABELS.index(c[0])] if cfg.TRANSLATED_LABELS else c[0]
 
-            if cfg.USE_PERCH:
+            if cfg.USE_PERCH != "disable":
                 common = scientific = label
             else:
                 split_label = label.split("_", 1)
@@ -609,7 +609,7 @@ def predict(samples):
     prediction = model.predict(data)
 
     # Logits or sigmoid activations?
-    if cfg.APPLY_SIGMOID and not cfg.USE_PERCH:
+    if cfg.APPLY_SIGMOID and cfg.USE_PERCH == "disable":
         prediction = model.flat_sigmoid(np.array(prediction), sensitivity=-1, bias=cfg.SIGMOID_SENSITIVITY)
 
     return prediction

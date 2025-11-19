@@ -392,7 +392,25 @@ def check_model_files(checkpoint_dir, required_files):
     return True
 
 
-def check_perchv2_files():
+def detect_gpu_available():
+    """
+    Detect if GPU is available for TensorFlow.
+    
+    Returns:
+        bool: True if GPU is available, False otherwise.
+    """
+    try:
+        import tensorflow as tf
+        
+        # Check for GPU devices
+        gpu_devices = tf.config.list_physical_devices("GPU")
+        return len(gpu_devices) > 0
+    except Exception:
+        # If we can't detect, assume no GPU
+        return False
+
+
+def check_perchv2_files(model_path=None):
     required_files = [
         "fingerprint.pb",
         "saved_model.pb",
@@ -402,35 +420,92 @@ def check_perchv2_files():
         "assets/perch_v2_ebird_classes.csv",
     ]
 
-    return check_model_files(cfg.PERCH_V2_MODEL_PATH, required_files)
+    if model_path is None:
+        model_path = cfg.PERCH_V2_MODEL_PATH
+    
+    return check_model_files(model_path, required_files)
 
 
-def ensure_perch_exists():
+def ensure_perch_exists(use_cpu_model=False):
+    """
+    Download and setup the Perch model.
+    
+    Args:
+        use_cpu_model (bool): If True, download the CPU-optimized model variant.
+                             If False, download the GPU model variant.
+    """
     from shutil import copytree
 
     import kagglehub
 
-    if check_perchv2_files():
+    # Determine which model variant to download
+    if use_cpu_model:
+        model_path = cfg.PERCH_V2_CPU_MODEL_PATH
+        model_handle = "google/bird-vocalization-classifier/tensorFlow2/perch_v2_cpu"
+    else:
+        model_path = cfg.PERCH_V2_MODEL_PATH
+        model_handle = "google/bird-vocalization-classifier/tensorFlow2/perch_v2"
+    
+    # Check if the model already exists
+    if check_perchv2_files(model_path):
+        # Update the global config to point to the correct path
+        cfg.PERCH_V2_MODEL_PATH = model_path
         return
 
-    path = kagglehub.model_download("google/bird-vocalization-classifier/tensorFlow2/perch_v2")
+    # Download the appropriate model
+    path = kagglehub.model_download(model_handle)
 
     try:
-        os.makedirs(cfg.PERCH_V2_MODEL_PATH, exist_ok=True)
-        copytree(path, cfg.PERCH_V2_MODEL_PATH, dirs_exist_ok=True)
+        os.makedirs(model_path, exist_ok=True)
+        copytree(path, model_path, dirs_exist_ok=True)
+        # Update the global config to point to the correct path
+        cfg.PERCH_V2_MODEL_PATH = model_path
     except PermissionError:
         # we might not have permissions to write if installed system-wide
         cfg.PERCH_V2_MODEL_PATH = path
 
 
-def ensure_model_exists(check_perch: bool = False):
+def ensure_model_exists(check_perch: str = "disable"):
+    """
+    Ensure the appropriate model exists for analysis.
+    
+    Args:
+        check_perch (str): Perch model usage option. One of:
+            - "disable": Do not use Perch (use BirdNET)
+            - "auto": Auto-detect GPU and use appropriate Perch model
+            - "gpu": Force GPU Perch model
+            - "cpu": Force CPU Perch model
+    """
+    import warnings
     import zipfile
 
     import requests
     from tqdm import tqdm
 
-    if check_perch:
-        ensure_perch_exists()
+    if check_perch != "disable":
+        # Determine which model to use
+        if check_perch == "auto":
+            # Auto-detect GPU availability
+            use_cpu_model = not detect_gpu_available()
+            if use_cpu_model:
+                print("Auto-detection: No GPU detected, using CPU-optimized Perch model")
+            else:
+                print("Auto-detection: GPU detected, using GPU-optimized Perch model")
+        elif check_perch == "gpu":
+            # Force GPU model
+            use_cpu_model = False
+            if not detect_gpu_available():
+                warnings.warn(
+                    "GPU model requested but no GPU detected. Performance may be degraded.",
+                    stacklevel=2
+                )
+        elif check_perch == "cpu":
+            # Force CPU model
+            use_cpu_model = True
+        else:
+            raise ValueError(f"Invalid use_perch value: {check_perch}")
+        
+        ensure_perch_exists(use_cpu_model=use_cpu_model)
         return
 
     if FROZEN:

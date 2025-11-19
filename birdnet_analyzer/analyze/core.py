@@ -27,7 +27,7 @@ def analyze(
     threads: int = 8,
     locale: str = "en",
     additional_columns: list[str] | None = None,
-    use_perch: bool = False,
+    use_perch: str = "disable",
 ):
     """
     Analyzes audio files for bird species detection using the BirdNET-Analyzer.
@@ -56,7 +56,7 @@ def analyze(
         threads (int, optional): Number of CPU threads to use for analysis. Defaults to 8.
         locale (str, optional): Locale for species names and output. Defaults to "en".
         additional_columns (list[str] | None, optional): Additional columns to include in the output. Defaults to None.
-        use_perch (bool, optional): Whether to use the Perch model for analysis. Defaults to False.
+        use_perch (str, optional): Perch model usage. One of "disable", "auto", "gpu", "cpu". Defaults to "disable".
     Returns:
         None
     Raises:
@@ -154,7 +154,7 @@ def _set_params(
     threads,
     labels_file=None,
     additional_columns=None,
-    use_perch=False,
+    use_perch="disable",
 ):
     import birdnet_analyzer.config as cfg
     from birdnet_analyzer.analyze.utils import load_codes
@@ -169,10 +169,13 @@ def _set_params(
     if overlap < 0:
         raise ValueError("Overlap must be a non-negative value.")
 
-    if not use_perch and overlap > 2.9:
+    # Check if Perch is being used (any value other than "disable")
+    using_perch = use_perch != "disable"
+
+    if not using_perch and overlap > 2.9:
         raise ValueError("Overlap must be less than or equal to 2.9 seconds for BirdNET model.")
 
-    if use_perch and overlap > 4.9:
+    if using_perch and overlap > 4.9:
         raise ValueError("Overlap must be less than or equal to 4.9 seconds for Perch model.")
 
     if not isinstance(audio_speed, int | float):
@@ -181,7 +184,7 @@ def _set_params(
     if audio_speed <= 0:
         raise ValueError("Audio speed must be a positive value.")
 
-    if use_perch and sensitivity != 1.0:
+    if using_perch and sensitivity != 1.0:
         print("Warning: Sensitivity setting is ignored when using the Perch model.")
 
     cfg.CODES = load_codes()
@@ -202,7 +205,7 @@ def _set_params(
     cfg.ADDITIONAL_COLUMNS = additional_columns
     cfg.USE_PERCH = use_perch
 
-    if cfg.USE_PERCH and custom_classifier:
+    if using_perch and custom_classifier:
         raise ValueError("Selected custom classifier and Perch model, please select only one.")
 
     if not output:
@@ -225,7 +228,7 @@ def _set_params(
         cfg.CPU_THREADS = 1
         cfg.TFLITE_THREADS = threads
 
-    if cfg.USE_PERCH:
+    if cfg.USE_PERCH != "disable":
         cfg.MODEL_PATH = cfg.PERCH_V2_MODEL_PATH
         cfg.LABELS_FILE = cfg.perch_labels_file()
         cfg.SAMPLE_RATE = cfg.PERCH_SAMPLE_RATE
