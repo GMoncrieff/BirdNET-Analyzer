@@ -71,6 +71,11 @@ LOCATION_FILTER_THRESHOLD: float = 0.03
 # Inference settings #
 ######################
 
+# GPU settings
+# Set to False to disable GPU usage and force CPU-only inference
+# When True, TensorFlow will use available GPUs (e.g., for Perch v2 GPU model)
+GPU_ENABLED: bool = True
+
 # If None or empty file, no custom species list will be used
 # Note: Entries in this list have to match entries from the LABELS_FILE
 # We use the 2024 eBird taxonomy for species names (Clements list)
