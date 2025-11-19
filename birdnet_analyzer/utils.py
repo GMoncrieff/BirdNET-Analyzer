@@ -395,13 +395,13 @@ def check_model_files(checkpoint_dir, required_files):
 def detect_gpu_available():
     """
     Detect if GPU is available for TensorFlow.
-    
+
     Returns:
         bool: True if GPU is available, False otherwise.
     """
     try:
         import tensorflow as tf
-        
+
         # Check for GPU devices
         gpu_devices = tf.config.list_physical_devices("GPU")
         return len(gpu_devices) > 0
@@ -422,14 +422,14 @@ def check_perchv2_files(model_path=None):
 
     if model_path is None:
         model_path = cfg.PERCH_V2_MODEL_PATH
-    
+
     return check_model_files(model_path, required_files)
 
 
 def ensure_perch_exists(use_cpu_model=False):
     """
     Download and setup the Perch model.
-    
+
     Args:
         use_cpu_model (bool): If True, download the CPU-optimized model variant.
                              If False, download the GPU model variant.
@@ -445,7 +445,7 @@ def ensure_perch_exists(use_cpu_model=False):
     else:
         model_path = cfg.PERCH_V2_MODEL_PATH
         model_handle = "google/bird-vocalization-classifier/tensorFlow2/perch_v2"
-    
+
     # Check if the model already exists
     if check_perchv2_files(model_path):
         # Update the global config to point to the correct path
@@ -468,7 +468,7 @@ def ensure_perch_exists(use_cpu_model=False):
 def ensure_model_exists(check_perch: str = "disable"):
     """
     Ensure the appropriate model exists for analysis.
-    
+
     Args:
         check_perch (str): Perch model usage option. One of:
             - "disable": Do not use Perch (use BirdNET)
@@ -504,7 +504,7 @@ def ensure_model_exists(check_perch: str = "disable"):
             use_cpu_model = True
         else:
             raise ValueError(f"Invalid use_perch value: {check_perch}")
-        
+
         ensure_perch_exists(use_cpu_model=use_cpu_model)
         return
 
