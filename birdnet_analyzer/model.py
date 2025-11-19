@@ -23,7 +23,11 @@ except ModuleNotFoundError:
 
 tf.get_logger().setLevel("ERROR")
 logging.getLogger("tensorflow").setLevel(logging.ERROR)
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
+
+# Control GPU visibility based on config
+# If GPU_ENABLED is False, restrict TensorFlow to CPU-only mode
+if not cfg.GPU_ENABLED:
+    os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 SCRIPT_DIR = os.path.abspath(os.path.dirname(__file__))
 INTERPRETER = None
